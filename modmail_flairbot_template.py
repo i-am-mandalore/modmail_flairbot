@@ -3,6 +3,7 @@ import time
 import os
 import secrets
 import re
+import logging
 # Using a flat file instead of replit database
 PROCESSED_CONVERSATIONS_FILE = "processed_conversations.txt"
 
@@ -24,6 +25,14 @@ reddit = praw.Reddit(
     username=username,
     password=password,
     user_agent=REDDIT_USER_AGENT
+)
+
+# Configure logging
+
+logging.basicConfig(
+    filename="modmail_monitor.log",  # Log file name
+    level=logging.ERROR,             # Log only errors and above
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
 )
 
 # Function to grab a list of active conversations from our flat file
@@ -96,6 +105,13 @@ def monitor_modmail():
                         remove_processed_conversation(conversation.id) # Delete conversation from the list because we're done with it
 
         time.sleep(60)  # Check modmail every 60 seconds
+    pass
 
-if __name__ == "__main__":
-    monitor_modmail()
+while True:
+    try:
+        monitor_modmail()
+    except Exception as e:
+
+        logging.error(f"monitor_modmail crashed: {e}", exc_info=True)
+
+        time.sleep(5)  # Optional delay before restarting
